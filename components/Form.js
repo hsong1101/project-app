@@ -146,7 +146,7 @@ export default function Form() {
                       </div>
                       <p className="mt-4 text-[12px] text-gray-500 text-right">
                         These are top 10 most used genres. If not present,
-                        select `&rdquo;`Other`&rdquo;`
+                        select &rdquo;Other&rdquo;
                       </p>
                     </fieldset>
                   </div>
