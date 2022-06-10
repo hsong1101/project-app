@@ -1,3 +1,4 @@
+import '@tailwindcss/forms'
 import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }) {

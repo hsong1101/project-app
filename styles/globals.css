@@ -1,10 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html,
 body {
   padding: 0;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  @apply h-full;
 }
+
+/* body {
+  @apply bg-gray-50;
+} */
 
 a {
   color: inherit;
@@ -13,4 +22,28 @@ a {
 
 * {
   box-sizing: border-box;
+}
+
+@layer components {
+  #__next {
+    @apply h-full;
+  }
+}
+
+@layer utilities {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+.top-100 {
+  top: 100%;
+}
+.bottom-100 {
+  bottom: 100%;
+}
+.max-h-select {
+  max-height: 300px;
 }
