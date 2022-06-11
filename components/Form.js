@@ -1,7 +1,7 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { CheckIcon } from "@heroicons/react/outline";
+import axios from "axios";
 
 const genres = [
   { id: 1, name: "action" },
@@ -19,10 +19,55 @@ const genres = [
 
 export default function Form() {
   const [open, setOpen] = useState(false);
+  const [currStates, setCurrStates] = useState({
+    Synopsis: "",
+    Runtime: "",
+    Genres: [],
+  });
+  const [predicted, setPredicted] = useState({
+    Synopsis: "",
+    Runtime: "",
+    Genres: [],
+  });
 
-  function predict(e) {
+  function updateFeatures(e) {
+    const { target } = e;
+    const { name } = target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+
+    if (target.type === "checkbox") {
+      let newGenres = [];
+      if (target.checked) {
+        newGenres = [...currStates.Genres, name];
+      } else {
+        newGenres = currStates.Genres.filter((g) => g !== name);
+      }
+      setCurrStates({ ...currStates, Genres: newGenres });
+    } else {
+      setCurrStates({ ...currStates, [name]: value });
+    }
+  }
+
+  function resetFeatures(e) {
+    setCurrStates({
+      Synopsis: "",
+      Runtime: "",
+      Genres: [],
+    });
+
+    // Reset the form blank
+    document.getElementById("Features_Form").reset();
+  }
+
+  async function predict(e) {
     e.preventDefault();
-    setOpen(true)
+    setOpen(true);
+
+    const res = await axios.post(
+      "http://127.0.0.1:5000/predict_rating",
+      currStates
+    );
+    setPredicted(res.data);
   }
 
   return (
@@ -54,18 +99,25 @@ export default function Form() {
               >
                 <Dialog.Panel className="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-6">
                   <div>
-                    
-                    <div className="mt-3 text-center sm:mt-5">
+                    <div className="mt-3 sm:mt-5">
                       <Dialog.Title
                         as="h3"
-                        className="text-lg leading-6 font-medium text-gray-900"
+                        className="text-lg text-center leading-6 font-medium text-gray-900"
                       >
-                        Sike!
+                        Feature(s) provided
                       </Dialog.Title>
-                      <div className="mt-2">
+                      <div className="mt-5">
                         <p className="text-sm text-gray-500">
-                          Lorem ipsum dolor sit amet consectetur adipisicing
-                          elit. Consequatur amet labore.
+                          <span className="font-bold text-black">Synopsis</span>{" "}
+                          : {predicted.Synopsis}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-bold text-black">Runtime</span>{" "}
+                          : {predicted.Runtime}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          <span className="font-bold text-black">Genres</span>{" "}
+                          : {predicted.Genres.join(", ")}
                         </p>
                       </div>
                     </div>
@@ -86,22 +138,23 @@ export default function Form() {
         </Dialog>
       </Transition.Root>
 
-      <form className="space-y-8 divide-y divide-gray-200">
+      <form className="space-y-8 divide-y divide-gray-200" id="Features_Form">
         <div className="space-y-8 divide-y divide-gray-200 sm:space-y-5">
           <div>
             <div className="mt-6 sm:mt-5 space-y-6 sm:space-y-5">
               <div className="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
                 <label
-                  htmlFor="about"
+                  htmlFor="Synopsis"
                   className="block text-md font-bold text-gray-700 sm:mt-px sm:pt-2"
                 >
                   Synopsis
                 </label>
                 <div className="mt-1 sm:mt-0 sm:col-span-2">
                   <textarea
-                    id="about"
-                    name="about"
+                    id="Synopsis"
+                    name="Synopsis"
                     rows={10}
+                    onChange={(e) => updateFeatures(e)}
                     placeholder="Write a few sentences about a movie you would like to produce"
                     className="max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
                     defaultValue={""}
@@ -111,7 +164,7 @@ export default function Form() {
 
               <div className="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
                 <label
-                  htmlFor="username"
+                  htmlFor="Genres"
                   className="block text-md font-bold text-gray-700 sm:mt-px sm:pt-2"
                 >
                   Genre(s)
@@ -120,24 +173,25 @@ export default function Form() {
                   <div className="max-w-lg flex rounded-md">
                     <fieldset className="w-full">
                       <div className="mt-4 border-gray-200 divide-y divide-gray-200">
-                        {genres.map((person, personIdx) => (
+                        {genres.map((genre, genreIdx) => (
                           <div
-                            key={personIdx}
+                            key={genreIdx}
                             className="relative flex items-start py-3"
                           >
                             <div className="first-letter:uppercase min-w-0 flex-1 text-sm">
                               <label
-                                htmlFor={`person-${person.id}`}
+                                htmlFor={`genre-${genre.id}`}
                                 className="font-medium text-gray-700 select-none"
                               >
-                                {person.name}
+                                {genre.name}
                               </label>
                             </div>
                             <div className="ml-3 flex items-center h-5">
                               <input
-                                id={`person-${person.id}`}
-                                name={`person-${person.id}`}
+                                id={`genre-${genre.id}`}
+                                name={genre.name}
                                 type="checkbox"
+                                onClick={(e) => updateFeatures(e)}
                                 className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
                               />
                             </div>
@@ -154,7 +208,7 @@ export default function Form() {
               </div>
               <div className="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start sm:border-t sm:border-gray-200 sm:pt-5">
                 <label
-                  htmlFor="runtime"
+                  htmlFor="Runtime"
                   className="block text-md font-bold text-gray-700 sm:mt-px sm:pt-2"
                 >
                   Runtime
@@ -163,9 +217,10 @@ export default function Form() {
                   <div className="max-w-lg flex rounded-md shadow-sm">
                     <input
                       type="number"
-                      name="runtime"
-                      id="runtime"
+                      name="Runtime"
+                      id="Runtime"
                       min="0"
+                      onChange={(e) => updateFeatures(e)}
                       placeholder="120"
                       className="flex-1 block w-full focus:ring-indigo-500 focus:border-indigo-500 min-w-0 rounded-md sm:text-sm border-gray-300 appearance-none"
                     />
@@ -183,6 +238,7 @@ export default function Form() {
           <div className="flex justify-end">
             <button
               type="button"
+              onClick={(e) => resetFeatures(e)}
               className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
               Reset
